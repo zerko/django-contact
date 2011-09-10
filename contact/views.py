@@ -8,6 +8,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.conf import settings
 
 from contact.forms import ContactForm
 
@@ -28,6 +29,11 @@ def contact(request, form_class=ContactForm,
         form = form_class(data=request.POST, files=request.FILES, request=request)
         if form.is_valid():
             form.save(fail_silently=fail_silently)
+            if getattr(settings, 'CONTACT_NO_REDIRECT', False):
+                form = form_class(request=request)
+                return render_to_response(template_name,
+                              { 'form': form, 'success':True },
+                              context_instance=RequestContext(request))            
             return HttpResponseRedirect(success_url)
     else:
         form = form_class(request=request)
