@@ -8,7 +8,7 @@ a web interface, and a subclass demonstrating useful functionality.
 from django import forms
 from django.conf import settings
 from django.contrib.sites.models import RequestSite, Site
-from django.core.mail import EmailMessage, SMTPConnection
+from django.core.mail import EmailMessage
 from django.template import loader, RequestContext
 from django.utils.translation import ugettext_lazy as _
 
@@ -117,8 +117,7 @@ class ContactForm(forms.Form):
         Builds and sends the email message.
         
         """
-        connection = SMTPConnection(fail_silently=fail_silently)
-        EmailMessage(connection=connection, **self.get_message_dict()).send()
+        EmailMessage(**self.get_message_dict()).send(fail_silently=fail_silently)
 
 
 class AkismetContactForm(ContactForm):
