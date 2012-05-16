@@ -28,8 +28,13 @@ class ContactForm(forms.Form):
         super(ContactForm, self).__init__(data=data, files=files, *args, **kwargs)
         self.request = request
 
-        default_to_user = callable(self.default_to_user) and \
-            self.default_to_user() or self.default_to_user
+        default_to_user = False
+        if hasattr(request, 'user'):
+            if callable(self.default_to_user):
+                if self.default_to_user():
+                    default_to_user = True
+            elif self.default_to_user:
+                default_to_user = True
 
         if default_to_user and request.user.is_authenticated():
             self.fields['name'].initial = ' '.join([request.user.first_name,
