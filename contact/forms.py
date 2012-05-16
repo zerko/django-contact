@@ -20,11 +20,8 @@ attrs_dict = { 'class': 'required' }
 
 
 class ContactForm(forms.Form):
-    """
-    Base contact form class from which all contact form classes should
-    inherit.
-    
-    """
+    """Basic contact form"""
+
     def __init__(self, data=None, files=None, request=None, *args, **kwargs):
         if request is None:
             raise TypeError("Keyword argument 'request' must be supplied")
@@ -50,13 +47,9 @@ class ContactForm(forms.Form):
                               label=_('Your message'))
 
     from_email = settings.DEFAULT_FROM_EMAIL
-
     recipient_list = [mail_tuple[1] for mail_tuple in settings.MANAGERS]
-
     headers = None
-
     subject_template_name = 'contact/subject.txt'
-
     template_name = 'contact/body.txt'
 
     default_to_user = True
@@ -64,10 +57,8 @@ class ContactForm(forms.Form):
     _context = None
 
     def message(self):
-        """
-        Renders the body of the message to a string.
-        
-        """
+        """Renders the body of the message to a string."""
+
         if callable(self.template_name):
             template_name = self.template_name()
         else:
@@ -76,10 +67,8 @@ class ContactForm(forms.Form):
                                        self.get_context())
 
     def subject(self):
-        """
-        Renders the subject of the message to a string.
-        
-        """
+        """Render the subject of the message to a string."""
+
         subject = loader.render_to_string(self.subject_template_name,
                                           self.get_context())
         return ''.join(subject.splitlines())
@@ -102,32 +91,26 @@ class ContactForm(forms.Form):
     def get_message_dict(self):
         if not self.is_valid():
             raise ValueError("Message cannot be sent from invalid contact form")
-        message_dict = {}
-        for message_part, attrib_name in {'from_email': 'from_email',
-                                          'body': 'message',
-                                          'to': 'recipient_list',
-                                          'subject': 'subject',
-                                          'headers': 'headers'}.items():
-            attr = getattr(self, attrib_name)
-            message_dict[message_part] = callable(attr) and attr() or attr
+        message_dict = {
+                'from_email': self.from_email,
+                'body': self.message(),
+                'to': self.recipient_list,
+                'subject': self.subject(),
+                'headers': self.headers,
+                }
         return message_dict
 
     def save(self, fail_silently=False):
-        """
-        Builds and sends the email message.
-        
-        """
+        """Build and send the email message."""
+
         EmailMessage(**self.get_message_dict()).send(fail_silently=fail_silently)
 
 
 class AkismetContactForm(ContactForm):
-    """
-    Contact form which doesn't add any extra fields, but does add an
-    Akismet spam check to the validation routine.
+    """Contact form with an Akismet spam check.
 
     Requires the setting ``AKISMET_API_KEY``, which should be a valid
     Akismet API key.
-
     """
     def clean_body(self):
         if 'body' in self.cleaned_data and getattr(settings, 'AKISMET_API_KEY', ''):
