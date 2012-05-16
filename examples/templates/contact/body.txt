@@ -1,5 +1,5 @@
-Name: {{ name }}
-Email: {{ email }}
+Name: {{ name|safe }}
+Email: {{ email|safe }}
 Message:
 
-{{ body }}
+{{ body|safe }}
