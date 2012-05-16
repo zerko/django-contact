@@ -58,6 +58,7 @@ class ContactForm(forms.Form):
     template_name = 'contact/body.txt'
 
     default_to_user = True
+    set_reply_to = True
 
     _context = None
 
@@ -96,12 +97,21 @@ class ContactForm(forms.Form):
     def get_message_dict(self):
         if not self.is_valid():
             raise ValueError("Message cannot be sent from invalid contact form")
+
+        if self.headers:
+            headers = dict(self.headers)
+        else:
+            headers = {}
+        if self.set_reply_to:
+            # Note that an EmailField is validated by Django.
+            headers['Reply-To'] = self.cleaned_data['email']
+
         message_dict = {
                 'from_email': self.from_email,
                 'body': self.message(),
                 'to': self.recipient_list,
                 'subject': self.subject(),
-                'headers': self.headers,
+                'headers': headers,
                 }
         return message_dict
 
